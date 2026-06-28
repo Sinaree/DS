@@ -285,7 +285,29 @@
     bottom: -1px;
     font-size: 14px;
     color: var(--rose-300);
+  
+  /* Cycle phases */
+  .cal-day.follicular { background: #e0f2fe; color: #0369a1; }
+  .cal-day.ovulation { background: #dcfce7; color: #15803d; }
+  .cal-day.ovulation::before {
+    content: ''; position: absolute; bottom: 2px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #22c55e;
   }
+  .cal-day.luteal { background: #fef3c7; color: #b45309; }
+  .cal-day.phase-legend { cursor: default; font-size: 11px; border-radius: 4px; padding: 2px 6px; }
+  .phase-legend-bar {
+    display: flex; gap: 4px; margin-top: 10px; padding: 8px 0;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .phase-legend-item {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--slate-500);
+  }
+  .phase-legend-dot {
+    width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+  }
+}
 
   /* Cycle stats */
   .stats-row {
@@ -573,6 +595,7 @@
     <div class="status-label" id="statusLabel">当前状态</div>
     <div class="status-main" id="statusMain">—</div>
     <div class="status-sub" id="statusSub"></div>
+    <div class="status-sub" id="phaseLabel" style="margin-top:4px;opacity:.7"></div>
     <div class="status-days" id="statusDays" style="display:none"></div>
   </div>
 
@@ -610,7 +633,14 @@
       <span data-i18n="sun">日</span><span data-i18n="mon">一</span><span data-i18n="tue">二</span><span data-i18n="wed">三</span><span data-i18n="thu">四</span><span data-i18n="fri">五</span><span data-i18n="sat">六</span>
     </div>
     <div class="cal-grid" id="calGrid"></div>
+  
+  <div class="phase-legend-bar">
+    <div class="phase-legend-item"><span class="phase-legend-dot" style="background:var(--rose-400)"></span><span data-i18n="phaseMenstrual">经期</span></div>
+    <div class="phase-legend-item"><span class="phase-legend-dot" style="background:#7dd3fc"></span><span data-i18n="phaseFollicular">卵泡期</span></div>
+    <div class="phase-legend-item"><span class="phase-legend-dot" style="background:#86efac"></span><span data-i18n="phaseOvulation">排卵期</span></div>
+    <div class="phase-legend-item"><span class="phase-legend-dot" style="background:#fde68a"></span><span data-i18n="phaseLuteal">黄体期</span></div>
   </div>
+</div>
 
   <div class="section-title"><span data-i18n="history">历史记录</span>>
     历史记录
@@ -820,6 +850,10 @@ const LANG = {
     yourFirstCycle: "Record your first cycle",
     clickToStart: "Tap the button below to start",
     dateLabel: "Date",
+        phaseMenstrual: "Period",
+    phaseFollicular: "Follicular",
+    phaseOvulation: "Ovulation",
+    phaseLuteal: "Luteal",
     langSwitch: "中文"
   }
 };
@@ -965,6 +999,72 @@ function predictNextPeriod() {
   const nextStart = addDays(last.start, avgInterval);
   const nextEnd = addDays(nextStart, avgPeriodLen - 1);
   return { start: nextStart, end: nextEnd, avgInterval, avgPeriodLen };
+
+// Phase calculation
+function getCyclePhaseInfo() {
+  const sorted = [...data.cycles].sort((a,b) => a.start.localeCompare(b.start));
+  if (sorted.length === 0) return null;
+
+  let avgCycleLen = 28, avgPeriodLen = 5;
+  if (sorted.length >= 2) {
+    const intervals = [];
+    for (let i = 1; i < sorted.length; i++) intervals.push(daysBetween(sorted[i-1].start, sorted[i].start));
+    avgCycleLen = Math.round(intervals.reduce((a,b) => a+b, 0) / intervals.length);
+    const lengths = sorted.map(c => daysBetween(c.start, c.end) + 1);
+    avgPeriodLen = Math.round(lengths.reduce((a,b) => a+b, 0) / lengths.length);
+  } else {
+    const c = sorted[0];
+    avgPeriodLen = daysBetween(c.start, c.end) + 1;
+  }
+
+  const lastStart = sorted[sorted.length - 1].start;
+  const nextStart = addDays(lastStart, avgCycleLen);
+  const nextEnd = addDays(nextStart, avgPeriodLen - 1);
+  const ovDay = addDays(nextStart, -14);
+  const fertileStart = addDays(ovDay, -3);
+  const fertileEnd = addDays(ovDay, 3);
+
+  return {
+    nextPeriodStart: nextStart, nextPeriodEnd: nextEnd,
+    ovDay, fertileStart, fertileEnd,
+    lutealStart: addDays(fertileEnd, 1),
+    lutealEnd: addDays(nextStart, -1),
+    avgCycleLen, avgPeriodLen
+  };
+}
+
+function getDayPhase(dateStr, phaseInfo) {
+  if (!phaseInfo) return null;
+  const entry = data.entries[dateStr];
+  if (entry && entry.inPeriod) return "menstrual";
+
+  const { nextPeriodStart, nextPeriodEnd, fertileStart, fertileEnd, lutealStart, lutealEnd } = phaseInfo;
+
+  if (dateStr >= nextPeriodStart && dateStr <= nextPeriodEnd) return "menstrual";
+  if (dateStr >= fertileStart && dateStr <= fertileEnd) return "ovulation";
+  if (dateStr >= lutealStart && dateStr <= lutealEnd) return "luteal";
+
+  // Follicular: between end of last period and fertile window start
+  const lastEnd = data.cycles.length > 0 ? data.cycles[data.cycles.length-1].end : "";
+  if (lastEnd && dateStr > lastEnd && dateStr < fertileStart) return "follicular";
+
+  return null;
+}
+
+function getCurrentPhaseLabel() {
+  const info = getCyclePhaseInfo();
+  if (!info) return "";
+  const today = todayStr();
+  const phase = getDayPhase(today, info);
+
+  const labels = {
+    menstrual: currentLang === "zh" ? "经期" : "Period",
+    follicular: currentLang === "zh" ? "卵泡期" : "Follicular",
+    ovulation: currentLang === "zh" ? "排卵期" : "Ovulation",
+    luteal: currentLang === "zh" ? "黄体期" : "Luteal"
+  };
+  return labels[phase] || "";
+}
 }
 
 // ─── UI: Status Card ──────────────────────────────────────
@@ -977,6 +1077,19 @@ function updateStatus() {
   const main = document.getElementById('statusMain');
   const sub = document.getElementById('statusSub');
   const daysEl = document.getElementById('statusDays');
+  const phaseEl = document.getElementById('phaseLabel');
+
+  // Show current cycle phase
+  const phaseLabel = getCurrentPhaseLabel();
+  if (phaseLabel && !active) {
+    phaseEl.textContent = phaseLabel;
+    phaseEl.style.display = "block";
+  } else if (active) {
+    phaseEl.textContent = "";
+    phaseEl.style.display = "none";
+  } else {
+    phaseEl.style.display = "none";
+  }
 
   if (active) {
     const dayNum = daysBetween(active.start, today) + 1;
@@ -1049,6 +1162,7 @@ function renderCalendar() {
 
   const today = todayStr();
   const prediction = predictNextPeriod();
+  const phaseInfo = getCyclePhaseInfo();
 
   const grid = document.getElementById('calGrid');
   grid.innerHTML = '';
@@ -1082,8 +1196,12 @@ function renderCalendar() {
       else if (isStart) el.className += ' period-start';
       else if (isEnd) el.className += ' period-end';
       else el.className += ' period';
-    } else if (prediction && ds >= prediction.start && ds <= prediction.end) {
-      el.className += ' predicted';
+    } else {
+      // Show phase for non-period days
+      const phase = getDayPhase(ds, phaseInfo);
+      if (phase && (ds >= today || el.classList.contains('other-month') === false)) {
+        el.className += ' ' + phase;
+      }
     }
 
     if (ds === today) el.className += ' today';
