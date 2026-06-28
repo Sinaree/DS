@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f43f5e">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/icon-192x192.png">
+<title>周期日记</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+  :root {
+    --rose-50: #fff1f2;
+    --rose-100: #ffe4e6;
+    --rose-200: #fecdd3;
+    --rose-300: #fda4af;
+    --rose-400: #fb7185;
+    --rose-500: #f43f5e;
+    --rose-600: #e11d48;
+    --rose-700: #be123c;
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+    --white: #ffffff;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+    --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-md: 0 4px 6px rgba(0,0,0,.07);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,.1);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', system-ui, sans-serif;
+    background: var(--slate-50);
+    color: var(--slate-800);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px 100px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-top: 8px;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--slate-900);
+    letter-spacing: -.3px;
+  }
+  .header-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: var(--white);
+    color: var(--slate-600);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all .15s;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-icon:hover { background: var(--rose-50); color: var(--rose-500); }
+  .btn-icon:active { transform: scale(.92); }
+
+  /* Status card */
+  .status-card {
+    background: linear-gradient(135deg, var(--rose-500), var(--rose-600));
+    color: var(--white);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+  .status-card::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.08);
+  }
+  .status-label {
+    font-size: 13px;
+    font-weight: 500;
+    opacity: .85;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .status-main {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .status-sub {
+    font-size: 14px;
+    opacity: .8;
+  }
+  .status-days {
+    display: inline-block;
+    background: rgba(255,255,255,.2);
+    border-radius: 20px;
+    padding: 2px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 8px;
+  }
+
+  /* Quick log */
+  .quick-log {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    cursor: pointer;
+    transition: all .15s;
+    border: 1.5px solid transparent;
+  }
+  .quick-log:hover { border-color: var(--rose-200); box-shadow: var(--shadow); }
+  .quick-log-emoji {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--rose-50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .quick-log-text { flex: 1; }
+  .quick-log-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--slate-800);
+  }
+  .quick-log-desc {
+    font-size: 13px;
+    color: var(--slate-400);
+    margin-top: 1px;
+  }
+  .quick-log-arrow {
+    color: var(--slate-300);
+    font-size: 18px;
+  }
+
+  /* Section */
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--slate-600);
+    margin: 28px 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .section-title a {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--rose-500);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .section-title a:hover { text-decoration: underline; }
+
+  /* Calendar */
+  .calendar {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .cal-nav {
+    background: none;
+    border: none;
+    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--slate-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .15s;
+  }
+  .cal-nav:hover { background: var(--slate-100); color: var(--slate-800); }
+  .cal-month {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--slate-800);
+  }
+  .cal-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--slate-400);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+  }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    transition: all .12s;
+    color: var(--slate-600);
+  }
+  .cal-day:hover { background: var(--slate-100); }
+  .cal-day.other-month { color: var(--slate-300); }
+  .cal-day.today { font-weight: 700; color: var(--slate-900); }
+  .cal-day.today::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--rose-400);
+  }
+  .cal-day.period { background: var(--rose-100); color: var(--rose-700); font-weight: 600; }
+  .cal-day.period:hover { background: var(--rose-200); }
+  .cal-day.period-start { background: var(--rose-400); color: var(--white); font-weight: 700; box-shadow: 0 0 0 2px var(--rose-200); }
+  .cal-day.period-start:hover { background: var(--rose-500); }
+  .cal-day.period-end { background: var(--rose-400); color: var(--white); font-weight: 700; }
+  .cal-day.period-end:hover { background: var(--rose-500); }
+  .cal-day.predicted { background: var(--rose-50); color: var(--rose-400); }
+  .cal-day.predicted::before {
+    content: '·';
+    position: absolute;
+    bottom: -1px;
+    font-size: 14px;
+    color: var(--rose-300);
+  }
+
+  /* Cycle stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--white);
+    border-radius: var(--radius-sm);
+    padding: 14px 10px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .stat-num {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--slate-900);
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--slate-400);
+    margin-top: 2px;
+  }
+
+  /* History */
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .history-item {
+    background: var(--white);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all .15s;
+    border: 1px solid transparent;
+  }
+  .history-item:hover { border-color: var(--rose-200); }
+  .history-dates {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--slate-800);
+  }
+  .history-dates span {
+    font-weight: 400;
+    color: var(--slate-400);
+    margin: 0 4px;
+  }
+  .history-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .history-length {
+    font-size: 13px;
+    color: var(--slate-500);
+    background: var(--slate-100);
+    padding: 2px 10px;
+    border-radius: 12px;
+  }
+  .history-flow {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .flow-light { background: var(--rose-200); }
+  .flow-medium { background: var(--rose-400); }
+  .flow-heavy { background: var(--rose-600); }
+  .history-edit {
+    color: var(--slate-300);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .history-edit:hover { color: var(--rose-500); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--slate-400);
+  }
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+  .empty-state-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--slate-600);
+    margin-bottom: 6px;
+  }
+  .empty-state-desc {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,.4);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn .2s;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--white);
+    border-radius: var(--radius) var(--radius) 0 0;
+    width: 100%;
+    max-width: 480px;
+    padding: 24px 20px 32px;
+    animation: slideUp .25s ease-out;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--slate-300);
+    margin: 0 auto 16px;
+  }
+  .modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--slate-900);
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .modal-field {
+    margin-bottom: 16px;
+  }
+  .modal-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--slate-600);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .modal-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--slate-200);
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    color: var(--slate-800);
+    background: var(--slate-50);
+    outline: none;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .modal-input:focus { border-color: var(--rose-300); box-shadow: 0 0 0 3px var(--rose-100); }
+  .flow-selector {
+    display: flex;
+    gap: 8px;
+  }
+  .flow-option {
+    flex: 1;
+    padding: 10px;
+    border: 1.5px solid var(--slate-200);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--slate-500);
+    background: var(--slate-50);
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .flow-option:hover { border-color: var(--rose-200); }
+  .flow-option.selected { border-color: var(--rose-400); background: var(--rose-50); color: var(--rose-600); }
+  .symptom-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .symptom-tag {
+    padding: 6px 14px;
+    border: 1.5px solid var(--slate-200);
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--slate-500);
+    background: var(--slate-50);
+    transition: all .15s;
+    user-select: none;
+  }
+  .symptom-tag:hover { border-color: var(--rose-200); }
+  .symptom-tag.selected { border-color: var(--rose-400); background: var(--rose-50); color: var(--rose-600); }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--rose-500); color: var(--white); }
+  .btn-primary:hover { background: var(--rose-600); }
+  .btn-secondary { background: var(--slate-100); color: var(--slate-600); }
+  .btn-secondary:hover { background: var(--slate-200); }
+  .btn-danger { background: transparent; color: var(--rose-500); }
+  .btn-danger:hover { background: var(--rose-50); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--slate-900);
+    color: var(--white);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all .3s;
+    pointer-events: none;
+    z-index: 200;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  @media (min-width: 480px) {
+    .modal-overlay {
+      align-items: center;
+    }
+    .modal {
+      border-radius: var(--radius);
+      max-height: 85vh;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div class="header">
+    <h1>周期日记</h1>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="exportData()" title="导出数据">↓</button>
+      <button class="btn-icon" onclick="showImportDialog()" title="导入数据">↑</button>
+      <button class="btn-icon" onclick="openLogModal()" title="记录经期">+</button>
+    </div>
+  </div>
+
+  <div class="status-card" id="statusCard">
+    <div class="status-label" id="statusLabel">当前状态</div>
+    <div class="status-main" id="statusMain">—</div>
+    <div class="status-sub" id="statusSub"></div>
+    <div class="status-days" id="statusDays" style="display:none"></div>
+  </div>
+
+  <div class="quick-log" onclick="openQuickLog()">
+    <div class="quick-log-emoji">📝</div>
+    <div class="quick-log-text">
+      <div class="quick-log-title">记录今天</div>
+      <div class="quick-log-desc" id="quickLogDesc">点击记录流量和症状</div>
+    </div>
+    <div class="quick-log-arrow">→</div>
+  </div>
+
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card">
+      <div class="stat-num" id="avgCycle">—</div>
+      <div class="stat-label">平均周期</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="avgPeriod">—</div>
+      <div class="stat-label">平均经期</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="totalCycles">—</div>
+      <div class="stat-label">记录周期</div>
+    </div>
+  </div>
+
+  <div class="calendar" id="calendar">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="prevMonth()">←</button>
+      <span class="cal-month" id="calMonth"></span>
+      <button class="cal-nav" onclick="nextMonth()">→</button>
+    </div>
+    <div class="cal-weekdays">
+      <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <div class="section-title">
+    历史记录
+    <a onclick="clearAllData()" style="color:var(--slate-300)">清空</a>
+  </div>
+  <div id="historyList" class="history-list"></div>
+</div>
+
+<!-- Modal: Log Period -->
+<div class="modal-overlay" id="logModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">记录经期</div>
+
+    <div class="modal-field">
+      <label class="modal-label">开始日期</label>
+      <input class="modal-input" type="date" id="startDate">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">结束日期</label>
+      <input class="modal-input" type="date" id="endDate">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">流量</label>
+      <div class="flow-selector">
+        <button class="flow-option" data-flow="light" onclick="selectFlow(this)">少量</button>
+        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)">中量</button>
+        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)">大量</button>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">症状（可多选）</label>
+      <div class="symptom-tags" id="symptomTags">
+        <span class="symptom-tag" data-symptom="cramp" onclick="toggleSymptom(this)">腹痛</span>
+        <span class="symptom-tag" data-symptom="headache" onclick="toggleSymptom(this)">头痛</span>
+        <span class="symptom-tag" data-symptom="bloat" onclick="toggleSymptom(this)">腹胀</span>
+        <span class="symptom-tag" data-symptom="fatigue" onclick="toggleSymptom(this)">疲劳</span>
+        <span class="symptom-tag" data-symptom="mood" onclick="toggleSymptom(this)">情绪波动</span>
+        <span class="symptom-tag" data-symptom="back" onclick="toggleSymptom(this)">腰酸</span>
+        <span class="symptom-tag" data-symptom="breast" onclick="toggleSymptom(this)">乳房胀痛</span>
+        <span class="symptom-tag" data-symptom="acne" onclick="toggleSymptom(this)">长痘</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="savePeriod()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Quick Log -->
+<div class="modal-overlay" id="quickModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">记录今天</div>
+
+    <div class="modal-field">
+      <label class="modal-label">经期状态</label>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" style="flex:1" id="quickPeriodBtn" onclick="toggleQuickPeriod()">不在经期</button>
+      </div>
+    </div>
+    <div class="modal-field" id="quickFlowField" style="display:none">
+      <label class="modal-label">流量</label>
+      <div class="flow-selector">
+        <button class="flow-option" data-flow="light" onclick="selectFlow(this)">少量</button>
+        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)">中量</button>
+        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)">大量</button>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">症状（可多选）</label>
+      <div class="symptom-tags" id="quickSymptomTags">
+        <span class="symptom-tag" data-symptom="cramp" onclick="toggleSymptom(this)">腹痛</span>
+        <span class="symptom-tag" data-symptom="headache" onclick="toggleSymptom(this)">头痛</span>
+        <span class="symptom-tag" data-symptom="bloat" onclick="toggleSymptom(this)">腹胀</span>
+        <span class="symptom-tag" data-symptom="fatigue" onclick="toggleSymptom(this)">疲劳</span>
+        <span class="symptom-tag" data-symptom="mood" onclick="toggleSymptom(this)">情绪波动</span>
+        <span class="symptom-tag" data-symptom="back" onclick="toggleSymptom(this)">腰酸</span>
+        <span class="symptom-tag" data-symptom="breast" onclick="toggleSymptom(this)">乳房胀痛</span>
+        <span class="symptom-tag" data-symptom="acne" onclick="toggleSymptom(this)">长痘</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeQuickModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveQuickLog()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Edit Entry -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">编辑记录</div>
+    <div class="modal-field">
+      <label class="modal-label">日期</label>
+      <input class="modal-input" type="date" id="editDate" disabled>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">流量</label>
+      <div class="flow-selector" id="editFlowSelector">
+        <button class="flow-option" data-flow="light" onclick="selectFlow(this)">少量</button>
+        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)">中量</button>
+        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)">大量</button>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">症状</label>
+      <div class="symptom-tags" id="editSymptomTags"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="deleteEntryBtn" onclick="deleteCurrentEntry()" style="flex:0;padding:12px 16px">删除</button>
+      <button class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveEditEntry()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import dialog -->
+<input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Data Model ────────────────────────────────────────────
+const SYMPTOM_LABELS = {
+  cramp: '腹痛', headache: '头痛', bloat: '腹胀', fatigue: '疲劳',
+  mood: '情绪波动', back: '腰酸', breast: '乳房胀痛', acne: '长痘'
+};
+const FLOW_LABELS = { light: '少量', medium: '中量', heavy: '大量' };
+
+function getDefaultData() {
+  return {
+    cycles: [],
+    entries: {}
+  };
+}
+
+let data = getDefaultData();
+let calDate = new Date();
+let editDateKey = null;
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('period_tracker_data');
+    if (raw) {
+      data = JSON.parse(raw);
+      if (!data.cycles) data.cycles = [];
+      if (!data.entries) data.entries = {};
+    }
+  } catch(e) { data = getDefaultData(); }
+}
+
+function saveData() {
+  localStorage.setItem('period_tracker_data', JSON.stringify(data));
+}
+
+// ─── Date Helpers ──────────────────────────────────────────
+function todayStr() { return formatDate(new Date()); }
+function formatDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function parseDate(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function daysBetween(a, b) {
+  const ms = parseDate(b) - parseDate(a);
+  return Math.round(ms / 86400000);
+}
+function addDays(s, n) {
+  const d = parseDate(s);
+  d.setDate(d.getDate() + n);
+  return formatDate(d);
+}
+
+// ─── Cycle Logic ──────────────────────────────────────────
+function rebuildCycles() {
+  const periodDays = Object.entries(data.entries)
+    .filter(([,e]) => e.inPeriod)
+    .map(([k]) => k)
+    .sort();
+
+  if (periodDays.length === 0) {
+    data.cycles = [];
+    return;
+  }
+
+  const groups = [];
+  let cur = [periodDays[0]];
+  for (let i = 1; i < periodDays.length; i++) {
+    const diff = daysBetween(periodDays[i-1], periodDays[i]);
+    if (diff <= 2) {
+      cur.push(periodDays[i]);
+    } else {
+      groups.push(cur);
+      cur = [periodDays[i]];
+    }
+  }
+  groups.push(cur);
+
+  data.cycles = groups.map(days => {
+    const start = days[0];
+    const end = days[days.length - 1];
+    const flows = days.map(d => data.entries[d]?.flow).filter(Boolean);
+    const allSymptoms = days.flatMap(d => data.entries[d]?.symptoms || []);
+    const uniqueSymptoms = [...new Set(allSymptoms)];
+    const flowCounts = {};
+    flows.forEach(f => { flowCounts[f] = (flowCounts[f] || 0) + 1; });
+    let mainFlow = 'medium';
+    let maxCount = 0;
+    for (const [f,c] of Object.entries(flowCounts)) {
+      if (c > maxCount) { maxCount = c; mainFlow = f; }
+    }
+    return { start, end, flow: mainFlow, symptoms: uniqueSymptoms };
+  });
+}
+
+function findActiveCycle() {
+  const today = todayStr();
+  return data.cycles.find(c => today >= c.start && today <= c.end);
+}
+
+function predictNextPeriod() {
+  if (data.cycles.length < 2) return null;
+  const sorted = [...data.cycles].sort((a,b) => a.start.localeCompare(b.start));
+  const intervals = [];
+  for (let i = 1; i < sorted.length; i++) {
+    intervals.push(daysBetween(sorted[i-1].start, sorted[i].start));
+  }
+  if (intervals.length === 0) return null;
+  const avgInterval = Math.round(intervals.reduce((a,b) => a+b, 0) / intervals.length);
+  const avgPeriodLen = Math.round(sorted.reduce((a,c) => a + daysBetween(c.start, c.end) + 1, 0) / sorted.length);
+  const last = sorted[sorted.length - 1];
+  const nextStart = addDays(last.start, avgInterval);
+  const nextEnd = addDays(nextStart, avgPeriodLen - 1);
+  return { start: nextStart, end: nextEnd, avgInterval, avgPeriodLen };
+}
+
+// ─── UI: Status Card ──────────────────────────────────────
+function updateStatus() {
+  const active = findActiveCycle();
+  const prediction = predictNextPeriod();
+  const today = todayStr();
+
+  const lbl = document.getElementById('statusLabel');
+  const main = document.getElementById('statusMain');
+  const sub = document.getElementById('statusSub');
+  const daysEl = document.getElementById('statusDays');
+
+  if (active) {
+    const dayNum = daysBetween(active.start, today) + 1;
+    const total = daysBetween(active.start, active.end) + 1;
+    lbl.textContent = '经期中';
+    main.textContent = `第 ${dayNum} 天`;
+    sub.textContent = `预计 ${total} 天 · ${FLOW_LABELS[active.flow] || '中量'}`;
+    daysEl.style.display = 'inline-block';
+    daysEl.textContent = active.start + ' ~ ' + active.end;
+  } else if (prediction) {
+    const daysUntil = daysBetween(today, prediction.start);
+    if (daysUntil <= 3 && daysUntil >= 0) {
+      lbl.textContent = '预计即将开始';
+      main.textContent = `${daysUntil === 0 ? '今天' : daysUntil === 1 ? '明天' : `${daysUntil} 天后`}`;
+      sub.textContent = `预测 ${prediction.start} ~ ${prediction.end}`;
+    } else if (daysUntil < 0) {
+      lbl.textContent = '等待记录';
+      main.textContent = '记录下次经期';
+      sub.textContent = `上次预测 ${prediction.start}，请更新记录`;
+    } else {
+      lbl.textContent = '安全期';
+      main.textContent = `还有 ${daysUntil} 天`;
+      sub.textContent = `预测 ${prediction.start} ~ ${prediction.end}`;
+    }
+    daysEl.style.display = 'none';
+  } else {
+    lbl.textContent = '开始记录';
+    main.textContent = '记录你的第一个周期';
+    sub.textContent = '点击下方按钮开始';
+    daysEl.style.display = 'none';
+  }
+}
+
+// ─── UI: Stats ─────────────────────────────────────────────
+function updateStats() {
+  const sorted = [...data.cycles].sort((a,b) => a.start.localeCompare(b.start));
+  const n = sorted.length;
+
+  let avgCycle = '—';
+  if (n >= 2) {
+    const intervals = [];
+    for (let i = 1; i < sorted.length; i++) {
+      intervals.push(daysBetween(sorted[i-1].start, sorted[i].start));
+    }
+    avgCycle = Math.round(intervals.reduce((a,b) => a+b, 0) / intervals.length) + ' 天';
+  } else if (n === 1) {
+    avgCycle = '需要更多数据';
+  }
+
+  let avgPeriod = '—';
+  if (n > 0) {
+    const lengths = sorted.map(c => daysBetween(c.start, c.end) + 1);
+    avgPeriod = Math.round(lengths.reduce((a,b) => a+b, 0) / lengths.length) + ' 天';
+  }
+
+  document.getElementById('avgCycle').textContent = avgCycle;
+  document.getElementById('avgPeriod').textContent = avgPeriod;
+  document.getElementById('totalCycles').textContent = n + ' 个';
+}
+
+// ─── UI: Calendar ──────────────────────────────────────────
+function renderCalendar() {
+  const year = calDate.getFullYear();
+  const month = calDate.getMonth();
+  document.getElementById('calMonth').textContent = `${year}年${month+1}月`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+
+  const today = todayStr();
+  const prediction = predictNextPeriod();
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  // Previous month days
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const day = daysInPrev - i;
+    const d = new Date(year, month - 1, day);
+    const ds = formatDate(d);
+    const el = document.createElement('div');
+    el.className = 'cal-day other-month';
+    el.textContent = day;
+    grid.appendChild(el);
+  }
+
+  // Current month days
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(year, month, day);
+    const ds = formatDate(d);
+    const el = document.createElement('div');
+    el.className = 'cal-day';
+
+    const entry = data.entries[ds];
+    const isPeriod = entry && entry.inPeriod;
+
+    const isStart = data.cycles.some(c => c.start === ds);
+    const isEnd = data.cycles.some(c => c.end === ds);
+
+    if (isPeriod) {
+      if (isStart && isEnd) el.className += ' period-start period-end';
+      else if (isStart) el.className += ' period-start';
+      else if (isEnd) el.className += ' period-end';
+      else el.className += ' period';
+    } else if (prediction && ds >= prediction.start && ds <= prediction.end) {
+      el.className += ' predicted';
+    }
+
+    if (ds === today) el.className += ' today';
+    el.textContent = day;
+    el.dataset.date = ds;
+
+    el.addEventListener('click', () => {
+      if (isPeriod) openEditModal(ds);
+    });
+
+    grid.appendChild(el);
+  }
+
+  // Fill remaining cells
+  const totalCells = firstDay + daysInMonth;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let i = 1; i <= remaining; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day other-month';
+    el.textContent = i;
+    grid.appendChild(el);
+  }
+}
+
+function prevMonth() {
+  calDate.setMonth(calDate.getMonth() - 1);
+  renderCalendar();
+}
+function nextMonth() {
+  calDate.setMonth(calDate.getMonth() + 1);
+  renderCalendar();
+}
+
+// ─── UI: History ──────────────────────────────────────────
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  const sorted = [...data.cycles].sort((a,b) => b.start.localeCompare(a.start));
+
+  if (sorted.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🌸</div>
+        <div class="empty-state-title">还没有记录</div>
+        <div class="empty-state-desc">点击右上角「+」记录经期，<br>或点击「记录今天」开始吧</div>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = sorted.map(c => {
+    const len = daysBetween(c.start, c.end) + 1;
+    return `
+      <div class="history-item" onclick="openEditModal('${c.start}')">
+        <div>
+          <div class="history-dates">${c.start} <span>~</span> ${c.end}</div>
+        </div>
+        <div class="history-meta">
+          <span class="history-length">${len} 天</span>
+          <span class="history-flow flow-${c.flow}"></span>
+          <span class="history-edit">⋯</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ─── UI: Quick Log Desc ───────────────────────────────────
+function updateQuickDesc() {
+  const today = todayStr();
+  const entry = data.entries[today];
+  const el = document.getElementById('quickLogDesc');
+  if (!entry) {
+    el.textContent = '点击记录流量和症状';
+    return;
+  }
+  const parts = [];
+  if (entry.inPeriod) parts.push('经期中');
+  if (entry.flow) parts.push(FLOW_LABELS[entry.flow]);
+  if (entry.symptoms && entry.symptoms.length) {
+    parts.push(entry.symptoms.map(s => SYMPTOM_LABELS[s]).join(' '));
+  }
+  el.textContent = parts.length ? parts.join(' · ') : '已记录';
+}
+
+// ─── Modal: Log Period ────────────────────────────────────
+let selectedFlow = 'medium';
+let selectedSymptoms = [];
+
+function selectFlow(el) {
+  el.parentElement.querySelectorAll('.flow-option').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedFlow = el.dataset.flow;
+}
+
+function toggleSymptom(el) {
+  el.classList.toggle('selected');
+}
+
+function getSelectedSymptoms(container) {
+  return [...container.querySelectorAll('.symptom-tag.selected')].map(el => el.dataset.symptom);
+}
+
+function openLogModal() {
+  document.getElementById('modalTitle').textContent = '记录经期';
+  selectedFlow = 'medium';
+  document.querySelectorAll('#logModal .flow-option').forEach(b => b.classList.remove('selected'));
+  document.querySelector('#logModal .flow-option[data-flow="medium"]').classList.add('selected');
+  document.querySelectorAll('#logModal .symptom-tag').forEach(t => t.classList.remove('selected'));
+
+  const today = todayStr();
+  const active = findActiveCycle();
+  if (active) {
+    document.getElementById('startDate').value = active.start;
+    document.getElementById('endDate').value = today;
+  } else {
+    document.getElementById('startDate').value = today;
+    document.getElementById('endDate').value = today;
+  }
+  document.getElementById('logModal').classList.add('active');
+}
+
+function closeModal() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+}
+
+function savePeriod() {
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+  const symptoms = getSelectedSymptoms(document.getElementById('symptomTags'));
+
+  if (!start || !end) {
+    showToast('请选择日期');
+    return;
+  }
+  if (end < start) {
+    showToast('结束日期不能早于开始日期');
+    return;
+  }
+
+  let d = start;
+  while (d <= end) {
+    if (!data.entries[d]) data.entries[d] = {};
+    data.entries[d].inPeriod = true;
+    data.entries[d].flow = selectedFlow;
+    data.entries[d].symptoms = symptoms;
+    if (d === end) break;
+    d = addDays(d, 1);
+  }
+
+  rebuildCycles();
+  saveData();
+  refreshUI();
+  closeModal();
+  showToast('已保存');
+}
+
+// ─── Modal: Quick Log ──────────────────────────────────────
+let quickIsPeriod = false;
+
+function openQuickLog() {
+  const today = todayStr();
+  const entry = data.entries[today];
+
+  quickIsPeriod = entry ? !!entry.inPeriod : false;
+  selectedFlow = entry?.flow || 'medium';
+  const btn = document.getElementById('quickPeriodBtn');
+  btn.textContent = quickIsPeriod ? '在经期中' : '不在经期';
+  btn.className = quickIsPeriod ? 'btn btn-primary' : 'btn btn-secondary';
+
+  document.getElementById('quickFlowField').style.display = quickIsPeriod ? 'block' : 'none';
+
+  document.querySelectorAll('#quickModal .flow-option').forEach(b => b.classList.remove('selected'));
+  const flowEl = document.querySelector(`#quickModal .flow-option[data-flow="${selectedFlow}"]`);
+  if (flowEl) flowEl.classList.add('selected');
+
+  document.querySelectorAll('#quickModal .symptom-tag').forEach(t => t.classList.remove('selected'));
+  if (entry?.symptoms) {
+    entry.symptoms.forEach(s => {
+      const tag = document.querySelector(`#quickModal .symptom-tag[data-symptom="${s}"]`);
+      if (tag) tag.classList.add('selected');
+    });
+  }
+
+  document.getElementById('quickModal').classList.add('active');
+}
+
+function toggleQuickPeriod() {
+  quickIsPeriod = !quickIsPeriod;
+  const btn = document.getElementById('quickPeriodBtn');
+  btn.textContent = quickIsPeriod ? '在经期中' : '不在经期';
+  btn.className = quickIsPeriod ? 'btn btn-primary' : 'btn btn-secondary';
+  document.getElementById('quickFlowField').style.display = quickIsPeriod ? 'block' : 'none';
+  if (!quickIsPeriod) {
+    selectedFlow = 'medium';
+    document.querySelectorAll('#quickModal .flow-option').forEach(b => b.classList.remove('selected'));
+    document.querySelector('#quickModal .flow-option[data-flow="medium"]').classList.add('selected');
+  }
+}
+
+function closeQuickModal() {
+  document.getElementById('quickModal').classList.remove('active');
+}
+
+function saveQuickLog() {
+  const today = todayStr();
+  if (!data.entries[today]) data.entries[today] = {};
+
+  if (quickIsPeriod) {
+    data.entries[today].inPeriod = true;
+    data.entries[today].flow = selectedFlow;
+  } else {
+    data.entries[today].inPeriod = false;
+    data.entries[today].flow = null;
+  }
+  data.entries[today].symptoms = getSelectedSymptoms(document.getElementById('quickSymptomTags'));
+
+  rebuildCycles();
+  saveData();
+  refreshUI();
+  closeQuickModal();
+  showToast(quickIsPeriod ? '已记录经期' : '已记录症状');
+}
+
+// ─── Modal: Edit ──────────────────────────────────────────
+function openEditModal(dateStr) {
+  editDateKey = dateStr;
+  const entry = data.entries[dateStr];
+  if (!entry || !entry.inPeriod) return;
+
+  document.getElementById('editDate').value = dateStr;
+
+  document.querySelectorAll('#editFlowSelector .flow-option').forEach(b => b.classList.remove('selected'));
+  const flowEl = document.querySelector(`#editFlowSelector .flow-option[data-flow="${entry.flow || 'medium'}"]`);
+  if (flowEl) flowEl.classList.add('selected');
+
+  const symptomContainer = document.getElementById('editSymptomTags');
+  symptomContainer.innerHTML = '';
+  for (const [key, label] of Object.entries(SYMPTOM_LABELS)) {
+    const tag = document.createElement('span');
+    tag.className = 'symptom-tag';
+    if (entry.symptoms && entry.symptoms.includes(key)) tag.classList.add('selected');
+    tag.dataset.symptom = key;
+    tag.textContent = label;
+    tag.onclick = () => toggleSymptom(tag);
+    symptomContainer.appendChild(tag);
+  }
+
+  document.getElementById('editModal').classList.add('active');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('active');
+  editDateKey = null;
+}
+
+function saveEditEntry() {
+  if (!editDateKey) return;
+  const entry = data.entries[editDateKey];
+  if (!entry) return;
+
+  entry.flow = document.querySelector('#editFlowSelector .flow-option.selected')?.dataset.flow || 'medium';
+  entry.symptoms = getSelectedSymptoms(document.getElementById('editSymptomTags'));
+
+  rebuildCycles();
+  saveData();
+  refreshUI();
+  closeEditModal();
+  showToast('已更新');
+}
+
+function deleteCurrentEntry() {
+  if (!editDateKey) return;
+  delete data.entries[editDateKey];
+
+  const activeCycle = data.cycles.find(c => editDateKey >= c.start && editDateKey <= c.end);
+  if (activeCycle) {
+    let d = activeCycle.start;
+    while (d <= activeCycle.end) {
+      if (data.entries[d]) {
+        data.entries[d].inPeriod = false;
+        data.entries[d].flow = null;
+      }
+      if (d === activeCycle.end) break;
+      d = addDays(d, 1);
+    }
+    data.cycles = data.cycles.filter(c => c.start !== activeCycle.start);
+  }
+
+  saveData();
+  refreshUI();
+  closeEditModal();
+  showToast('已删除');
+}
+
+// ─── Data Export / Import ──────────────────────────────────
+function exportData() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `周期日记_${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('数据已导出');
+}
+
+function showImportDialog() {
+  document.getElementById('importInput').click();
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.cycles && imported.entries) {
+        data = imported;
+        saveData();
+        refreshUI();
+        showToast('数据已导入');
+      } else {
+        showToast('无效的数据文件');
+      }
+    } catch(_) {
+      showToast('文件解析失败');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ─── Clear ────────────────────────────────────────────────
+function clearAllData() {
+  if (data.cycles.length === 0) return;
+  if (confirm('确定要清空所有数据吗？此操作不可恢复。')) {
+    data = getDefaultData();
+    saveData();
+    refreshUI();
+    showToast('已清空');
+  }
+}
+
+// ─── Toast ────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ─── Refresh ──────────────────────────────────────────────
+function refreshUI() {
+  updateStatus();
+  updateStats();
+  renderCalendar();
+  renderHistory();
+  updateQuickDesc();
+}
+
+// ─── Init ─────────────────────────────────────────────────
+loadData();
+refreshUI();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
