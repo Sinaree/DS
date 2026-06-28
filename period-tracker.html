@@ -1649,7 +1649,7 @@ if ('serviceWorker' in navigator) {
       var installing = reg.installing;
       installing.addEventListener('statechange', function() {
         if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-          if (confirm(t("confirmClear") + "\n\n" + "App updated. Reload now?")) {
+          if (confirm(currentLang === "zh" ? "应用已更新，是否重新加载？" : "App updated. Reload now?")) {
             window.location.reload();
           }
         }
