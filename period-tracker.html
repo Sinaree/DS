@@ -297,6 +297,22 @@
   .cal-day.luteal { background: #fef3c7; color: #b45309; }
   .cal-day.menstrual { background: var(--rose-100); color: var(--rose-700); font-weight: 600; }
 
+
+  /* Phase indicator bar */
+  .cal-day .phase-bar {
+    position: absolute;
+    bottom: 1px;
+    left: 4px;
+    right: 4px;
+    height: 3px;
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  .cal-day .phase-bar.menstrual { background: #fb7185 }
+  .cal-day .phase-bar.follicular { background: #7dd3fc }
+  .cal-day .phase-bar.ovulation { background: #86efac }
+  .cal-day .phase-bar.luteal { background: #fde68a }
+
   .cal-day.phase-legend { cursor: default; font-size: 11px; border-radius: 4px; padding: 2px 6px; }
   .phase-legend-bar {
     display: flex; gap: 4px; margin-top: 10px; padding: 8px 0;
@@ -1043,6 +1059,26 @@ function getCyclePhaseInfo() {
 }
 
 function getDayPhase(dateStr, phaseInfo) {
+
+  // Handle dates between past recorded cycles
+  if (data.cycles.length >= 2) {
+    const sorted = [...data.cycles].sort((a,b) => a.start.localeCompare(b.start));
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const c = sorted[i], next = sorted[i+1];
+      if (dateStr > c.end && dateStr < next.start) {
+        const cycleLen = daysBetween(c.start, next.start);
+        const ovDay = addDays(c.start, cycleLen - 14);
+        const fStart = addDays(ovDay, -3);
+        const fEnd = addDays(ovDay, 3);
+        const lStart = addDays(fEnd, 1);
+        const lEnd = addDays(next.start, -1);
+        if (dateStr >= fStart && dateStr <= fEnd) { return "ovulation"; }
+        if (dateStr >= lStart && dateStr <= lEnd) { return "luteal"; }
+        if (dateStr > c.end && dateStr < fStart) { return "follicular"; }
+      }
+    }
+  }
+
   if (!phaseInfo) return null;
   const entry = data.entries[dateStr];
   if (entry && entry.inPeriod) return "menstrual";
@@ -1201,12 +1237,18 @@ function renderCalendar() {
       else if (isStart) el.className += ' period-start';
       else if (isEnd) el.className += ' period-end';
       else el.className += ' period';
-    } else {
-      // Show phase for non-period days
-      const phase = getDayPhase(ds, phaseInfo);
-      if (phase && (ds >= today || el.classList.contains('other-month') === false)) {
-        el.className += ' ' + phase;
+    }
+    if (!isPeriod) {
+      const ph = getDayPhase(ds, phaseInfo);
+      if (ph) {
+        el.className += " " + ph;
       }
+    }
+    const pb = getDayPhase(ds, phaseInfo);
+    if (pb) {
+      const bar = document.createElement("span");
+      bar.className = "phase-bar " + pb;
+      el.appendChild(bar);
     }
 
     if (ds === today) el.className += ' today';
