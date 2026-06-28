@@ -295,6 +295,8 @@
     background: #22c55e;
   }
   .cal-day.luteal { background: #fef3c7; color: #b45309; }
+  .cal-day.menstrual { background: var(--rose-100); color: var(--rose-700); font-weight: 600; }
+
   .cal-day.phase-legend { cursor: default; font-size: 11px; border-radius: 4px; padding: 2px 6px; }
   .phase-legend-bar {
     display: flex; gap: 4px; margin-top: 10px; padding: 8px 0;
@@ -666,9 +668,9 @@
     <div class="modal-field">
       <label class="modal-label" data-i18n="flow">流量</label>
       <div class="flow-selector">
-        <button class="flow-option" data-flow="light" onclick="selectFlow(this)" data-i18n="flowLight">少量</button>
-        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)" data-i18n="flowMedium">中量</button>
-        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)" data-i18n="flowHeavy">大量</button>
+        <button class="flow-option" data-flow="light" onclick="selectFlow(this)">少量</button>
+        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)">中量</button>
+        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)">大量</button>
       </div>
     </div>
     <div class="modal-field">
@@ -706,9 +708,9 @@
     <div class="modal-field" id="quickFlowField" style="display:none">
       <label class="modal-label" data-i18n="flow">流量</label>
       <div class="flow-selector">
-        <button class="flow-option" data-flow="light" onclick="selectFlow(this)" data-i18n="flowLight">少量</button>
-        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)" data-i18n="flowMedium">中量</button>
-        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)" data-i18n="flowHeavy">大量</button>
+        <button class="flow-option" data-flow="light" onclick="selectFlow(this)">少量</button>
+        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)">中量</button>
+        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)">大量</button>
       </div>
     </div>
     <div class="modal-field">
@@ -743,9 +745,9 @@
     <div class="modal-field">
       <label class="modal-label" data-i18n="flow">流量</label>
       <div class="flow-selector" id="editFlowSelector">
-        <button class="flow-option" data-flow="light" onclick="selectFlow(this)" data-i18n="flowLight">少量</button>
-        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)" data-i18n="flowMedium">中量</button>
-        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)" data-i18n="flowHeavy">大量</button>
+        <button class="flow-option" data-flow="light" onclick="selectFlow(this)">少量</button>
+        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)">中量</button>
+        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)">大量</button>
       </div>
     </div>
     <div class="modal-field">
@@ -1081,12 +1083,9 @@ function updateStatus() {
 
   // Show current cycle phase
   const phaseLabel = getCurrentPhaseLabel();
-  if (phaseLabel && !active) {
+  if (phaseLabel) {
     phaseEl.textContent = phaseLabel;
     phaseEl.style.display = "block";
-  } else if (active) {
-    phaseEl.textContent = "";
-    phaseEl.style.display = "none";
   } else {
     phaseEl.style.display = "none";
   }
@@ -1518,7 +1517,8 @@ function importData(event) {
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
-      const imported = JSON.parse(e.target.result);
+      const text = e.target.result.replace(/^\uFEFF/, "");
+      const imported = JSON.parse(text);
       if (imported.cycles && imported.entries) {
         data = imported;
         saveData();
@@ -1527,8 +1527,9 @@ function importData(event) {
       } else {
         showToast(t('invalidFile'));
       }
-    } catch(_) {
-      showToast(t('parseFailed'));
+    } catch(e) {
+      console.error("Import error:", e);
+      showToast(t('parseFailed') + ": " + (e.message || ""));
     }
   };
   reader.readAsText(file);
