@@ -1649,11 +1649,19 @@ if ('serviceWorker' in navigator) {
       var installing = reg.installing;
       installing.addEventListener('statechange', function() {
         if (installing.state === 'installed' && navigator.serviceWorker.controller) {
-          if (confirm(currentLang === "zh" ? "应用已更新，是否重新加载？" : "App updated. Reload now?")) {
-            window.location.reload();
+          var msg = currentLang === "zh" ? "应用已更新，点击确定重新加载" : "App updated. Reload now?";
+          if (confirm(msg)) {
+            if (reg.waiting) {
+              reg.waiting.postMessage({ type: "SKIP_WAITING" });
+            } else {
+              window.location.reload();
+            }
           }
         }
       });
+    });
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      window.location.reload();
     });
     if (reg.active) {
       reg.update();
