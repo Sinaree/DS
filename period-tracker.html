@@ -1007,6 +1007,7 @@ function predictNextPeriod() {
   const nextStart = addDays(last.start, avgInterval);
   const nextEnd = addDays(nextStart, avgPeriodLen - 1);
   return { start: nextStart, end: nextEnd, avgInterval, avgPeriodLen };
+}
 
 // Phase calculation
 function getCyclePhaseInfo() {
@@ -1072,7 +1073,6 @@ function getCurrentPhaseLabel() {
     luteal: currentLang === "zh" ? "黄体期" : "Luteal"
   };
   return labels[phase] || "";
-}
 }
 
 // ─── UI: Status Card ──────────────────────────────────────
