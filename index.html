@@ -452,6 +452,7 @@
     font-family: inherit;
   }
   .modal-input:focus { border-color: var(--rose-300); box-shadow: 0 0 0 3px var(--rose-100); }
+  .symptom-multi { font-size: 12px; color: var(--slate-400); margin-top: 4px; }
   .flow-selector {
     display: flex;
     gap: 8px;
@@ -543,18 +544,29 @@
       max-height: 85vh;
     }
   }
+
+  /* Language switch */
+  .lang-btn {
+    background: none; border: 1.5px solid var(--slate-200);
+    border-radius: 16px; padding: 2px 10px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    color: var(--slate-500); transition: all .15s;
+    font-family: inherit; line-height: 1.6;
+  }
+  .lang-btn:hover { border-color: var(--rose-300); color: var(--rose-500); }
 </style>
 </head>
 <body>
 
 <div class="app" id="app">
   <div class="header">
-    <h1>周期日记</h1>
+    <h1 data-i18n="appName">周期日记</h1>
     <div class="header-actions">
-      <button class="btn-icon" onclick="exportData()" title="导出数据">↓</button>
-      <button class="btn-icon" onclick="showImportDialog()" title="导入数据">↑</button>
-      <button class="btn-icon" onclick="openLogModal()" title="记录经期">+</button>
-    </div>
+      <button class="btn-icon" onclick="exportData()" title="导出数据" data-i18n-title="exportTitle">↓</button>
+      <button class="btn-icon" onclick="showImportDialog()" title="导入数据" data-i18n-title="importTitle">↑</button>
+      <button class="btn-icon" onclick="openLogModal()" title="记录经期" data-i18n-title="addTitle">+</button>
+          <button class="lang-btn" id="langToggle" onclick="toggleLang()">English</button>
+</div>
   </div>
 
   <div class="status-card" id="statusCard">
@@ -567,7 +579,7 @@
   <div class="quick-log" onclick="openQuickLog()">
     <div class="quick-log-emoji">📝</div>
     <div class="quick-log-text">
-      <div class="quick-log-title">记录今天</div>
+      <div class="quick-log-title" data-i18n="recordToday">记录今天</div>
       <div class="quick-log-desc" id="quickLogDesc">点击记录流量和症状</div>
     </div>
     <div class="quick-log-arrow">→</div>
@@ -576,15 +588,15 @@
   <div class="stats-row" id="statsRow">
     <div class="stat-card">
       <div class="stat-num" id="avgCycle">—</div>
-      <div class="stat-label">平均周期</div>
+      <div class="stat-label" data-i18n="statsAvgCycle">平均周期</div>
     </div>
     <div class="stat-card">
       <div class="stat-num" id="avgPeriod">—</div>
-      <div class="stat-label">平均经期</div>
+      <div class="stat-label" data-i18n="statsAvgPeriod">平均经期</div>
     </div>
     <div class="stat-card">
       <div class="stat-num" id="totalCycles">—</div>
-      <div class="stat-label">记录周期</div>
+      <div class="stat-label" data-i18n="statsTotal">记录周期</div>
     </div>
   </div>
 
@@ -595,14 +607,14 @@
       <button class="cal-nav" onclick="nextMonth()">→</button>
     </div>
     <div class="cal-weekdays">
-      <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+      <span data-i18n="sun">日</span><span data-i18n="mon">一</span><span data-i18n="tue">二</span><span data-i18n="wed">三</span><span data-i18n="thu">四</span><span data-i18n="fri">五</span><span data-i18n="sat">六</span>
     </div>
     <div class="cal-grid" id="calGrid"></div>
   </div>
 
-  <div class="section-title">
+  <div class="section-title"><span data-i18n="history">历史记录</span>>
     历史记录
-    <a onclick="clearAllData()" style="color:var(--slate-300)">清空</a>
+    <a onclick="clearAllData()" style="color:var(--slate-300)" data-i18n="clear">清空</a>
   </div>
   <div id="historyList" class="history-list"></div>
 </div>
@@ -614,37 +626,37 @@
     <div class="modal-title" id="modalTitle">记录经期</div>
 
     <div class="modal-field">
-      <label class="modal-label">开始日期</label>
+      <label class="modal-label" data-i18n="startDate">开始日期</label>
       <input class="modal-input" type="date" id="startDate">
     </div>
     <div class="modal-field">
-      <label class="modal-label">结束日期</label>
+      <label class="modal-label" data-i18n="endDate">结束日期</label>
       <input class="modal-input" type="date" id="endDate">
     </div>
     <div class="modal-field">
-      <label class="modal-label">流量</label>
+      <label class="modal-label" data-i18n="flow">流量</label>
       <div class="flow-selector">
-        <button class="flow-option" data-flow="light" onclick="selectFlow(this)">少量</button>
-        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)">中量</button>
-        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)">大量</button>
+        <button class="flow-option" data-flow="light" onclick="selectFlow(this)" data-i18n="flowLight">少量</button>
+        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)" data-i18n="flowMedium">中量</button>
+        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)" data-i18n="flowHeavy">大量</button>
       </div>
     </div>
     <div class="modal-field">
-      <label class="modal-label">症状（可多选）</label>
+      <label class="modal-label" data-i18n="symptoms">症状（可多选）</label>
       <div class="symptom-tags" id="symptomTags">
-        <span class="symptom-tag" data-symptom="cramp" onclick="toggleSymptom(this)">腹痛</span>
-        <span class="symptom-tag" data-symptom="headache" onclick="toggleSymptom(this)">头痛</span>
-        <span class="symptom-tag" data-symptom="bloat" onclick="toggleSymptom(this)">腹胀</span>
-        <span class="symptom-tag" data-symptom="fatigue" onclick="toggleSymptom(this)">疲劳</span>
-        <span class="symptom-tag" data-symptom="mood" onclick="toggleSymptom(this)">情绪波动</span>
-        <span class="symptom-tag" data-symptom="back" onclick="toggleSymptom(this)">腰酸</span>
-        <span class="symptom-tag" data-symptom="breast" onclick="toggleSymptom(this)">乳房胀痛</span>
-        <span class="symptom-tag" data-symptom="acne" onclick="toggleSymptom(this)">长痘</span>
+        <span class="symptom-tag" data-symptom="cramp" onclick="toggleSymptom(this)" data-i18n="symptomCramp">腹痛</span
+        <span class="symptom-tag" data-symptom="headache" onclick="toggleSymptom(this)" data-i18n="symptomHeadache">头痛</span
+        <span class="symptom-tag" data-symptom="bloat" onclick="toggleSymptom(this)" data-i18n="symptomBloat">腹胀</span
+        <span class="symptom-tag" data-symptom="fatigue" onclick="toggleSymptom(this)" data-i18n="symptomFatigue">疲劳</span
+        <span class="symptom-tag" data-symptom="mood" onclick="toggleSymptom(this)" data-i18n="symptomMood">情绪波动</span
+        <span class="symptom-tag" data-symptom="back" onclick="toggleSymptom(this)" data-i18n="symptomBack">腰酸</span
+        <span class="symptom-tag" data-symptom="breast" onclick="toggleSymptom(this)" data-i18n="symptomBreast">乳房胀痛</span
+        <span class="symptom-tag" data-symptom="acne" onclick="toggleSymptom(this)" data-i18n="symptomAcne">长痘</span
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" onclick="savePeriod()">保存</button>
+      <button class="btn btn-secondary" onclick="closeModal()" data-i18n="cancel">取消</button>
+      <button class="btn btn-primary" onclick="savePeriod()" data-i18n="save">保存</button>
     </div>
   </div>
 </div>
@@ -656,35 +668,35 @@
     <div class="modal-title">记录今天</div>
 
     <div class="modal-field">
-      <label class="modal-label">经期状态</label>
+      <label class="modal-label" data-i18n="periodStatus">经期状态</label>
       <div style="display:flex;gap:8px">
         <button class="btn btn-secondary" style="flex:1" id="quickPeriodBtn" onclick="toggleQuickPeriod()">不在经期</button>
       </div>
     </div>
     <div class="modal-field" id="quickFlowField" style="display:none">
-      <label class="modal-label">流量</label>
+      <label class="modal-label" data-i18n="flow">流量</label>
       <div class="flow-selector">
-        <button class="flow-option" data-flow="light" onclick="selectFlow(this)">少量</button>
-        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)">中量</button>
-        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)">大量</button>
+        <button class="flow-option" data-flow="light" onclick="selectFlow(this)" data-i18n="flowLight">少量</button>
+        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)" data-i18n="flowMedium">中量</button>
+        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)" data-i18n="flowHeavy">大量</button>
       </div>
     </div>
     <div class="modal-field">
-      <label class="modal-label">症状（可多选）</label>
+      <label class="modal-label" data-i18n="symptoms">症状（可多选）</label>
       <div class="symptom-tags" id="quickSymptomTags">
-        <span class="symptom-tag" data-symptom="cramp" onclick="toggleSymptom(this)">腹痛</span>
-        <span class="symptom-tag" data-symptom="headache" onclick="toggleSymptom(this)">头痛</span>
-        <span class="symptom-tag" data-symptom="bloat" onclick="toggleSymptom(this)">腹胀</span>
-        <span class="symptom-tag" data-symptom="fatigue" onclick="toggleSymptom(this)">疲劳</span>
-        <span class="symptom-tag" data-symptom="mood" onclick="toggleSymptom(this)">情绪波动</span>
-        <span class="symptom-tag" data-symptom="back" onclick="toggleSymptom(this)">腰酸</span>
-        <span class="symptom-tag" data-symptom="breast" onclick="toggleSymptom(this)">乳房胀痛</span>
-        <span class="symptom-tag" data-symptom="acne" onclick="toggleSymptom(this)">长痘</span>
+        <span class="symptom-tag" data-symptom="cramp" onclick="toggleSymptom(this)" data-i18n="symptomCramp">腹痛</span
+        <span class="symptom-tag" data-symptom="headache" onclick="toggleSymptom(this)" data-i18n="symptomHeadache">头痛</span
+        <span class="symptom-tag" data-symptom="bloat" onclick="toggleSymptom(this)" data-i18n="symptomBloat">腹胀</span
+        <span class="symptom-tag" data-symptom="fatigue" onclick="toggleSymptom(this)" data-i18n="symptomFatigue">疲劳</span
+        <span class="symptom-tag" data-symptom="mood" onclick="toggleSymptom(this)" data-i18n="symptomMood">情绪波动</span
+        <span class="symptom-tag" data-symptom="back" onclick="toggleSymptom(this)" data-i18n="symptomBack">腰酸</span
+        <span class="symptom-tag" data-symptom="breast" onclick="toggleSymptom(this)" data-i18n="symptomBreast">乳房胀痛</span
+        <span class="symptom-tag" data-symptom="acne" onclick="toggleSymptom(this)" data-i18n="symptomAcne">长痘</span
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeQuickModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveQuickLog()">保存</button>
+      <button class="btn btn-secondary" onclick="closeQuickModal()" data-i18n="cancel">取消</button>
+      <button class="btn btn-primary" onclick="saveQuickLog()" data-i18n="save">保存</button>
     </div>
   </div>
 </div>
@@ -693,27 +705,27 @@
 <div class="modal-overlay" id="editModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">编辑记录</div>
+    <div class="modal-title" data-i18n="editRecord">编辑记录</div>
     <div class="modal-field">
-      <label class="modal-label">日期</label>
+      <label class="modal-label" data-i18n="dateLabel">日期</label>
       <input class="modal-input" type="date" id="editDate" disabled>
     </div>
     <div class="modal-field">
-      <label class="modal-label">流量</label>
+      <label class="modal-label" data-i18n="flow">流量</label>
       <div class="flow-selector" id="editFlowSelector">
-        <button class="flow-option" data-flow="light" onclick="selectFlow(this)">少量</button>
-        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)">中量</button>
-        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)">大量</button>
+        <button class="flow-option" data-flow="light" onclick="selectFlow(this)" data-i18n="flowLight">少量</button>
+        <button class="flow-option selected" data-flow="medium" onclick="selectFlow(this)" data-i18n="flowMedium">中量</button>
+        <button class="flow-option" data-flow="heavy" onclick="selectFlow(this)" data-i18n="flowHeavy">大量</button>
       </div>
     </div>
     <div class="modal-field">
-      <label class="modal-label">症状</label>
+      <label class="modal-label" data-i18n="symptoms">症状</label>
       <div class="symptom-tags" id="editSymptomTags"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-danger" id="deleteEntryBtn" onclick="deleteCurrentEntry()" style="flex:0;padding:12px 16px">删除</button>
-      <button class="btn btn-secondary" onclick="closeEditModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveEditEntry()">保存</button>
+      <button class="btn btn-danger" id="deleteEntryBtn" onclick="deleteCurrentEntry()" style="flex:0;padding:12px 16px" data-i18n="delete">删除</button>
+      <button class="btn btn-secondary" onclick="closeEditModal()" data-i18n="cancel">取消</button>
+      <button class="btn btn-primary" onclick="saveEditEntry()" data-i18n="save">保存</button>
     </div>
   </div>
 </div>
@@ -731,6 +743,118 @@ const SYMPTOM_LABELS = {
   mood: '情绪波动', back: '腰酸', breast: '乳房胀痛', acne: '长痘'
 };
 const FLOW_LABELS = { light: '少量', medium: '中量', heavy: '大量' };
+// i18n - Bilingual support
+const LANG = {
+  zh: {
+    appName: "周期日记", appSubtitle: "记录月经周期、预测经期、追踪症状",
+    exportTitle: "导出数据", importTitle: "导入数据", addTitle: "记录经期",
+    periodStatus: "经期中", day: "天", of: "/", predicted: "预计",
+    daysLeft: "还有", daysAfter: "天后", daysLater: "天后",
+    statusActive: "经期中", statusPredicted: "预计即将开始",
+    statusOverdue: "等待记录", statusSafe: "安全期",
+    statusEmpty: "开始记录",
+    today: "今天", tomorrow: "明天",
+    dayNum: "第 {n} 天", periodTotal: "预计 {n} 天",
+    recordToday: "记录今天", clickToRecord: "点击记录流量和症状",
+    inPeriod: "在经期中", notInPeriod: "不在经期",
+    statsAvgCycle: "平均周期", statsAvgPeriod: "平均经期", statsTotal: "记录周期",
+    needMoreData: "需要更多数据",
+    sun: "日", mon: "一", tue: "二", wed: "三", thu: "四", fri: "五", sat: "六",
+    history: "历史记录", clear: "清空",
+    historyEn: "History",
+    logPeriod: "记录经期", editRecord: "编辑记录", recordTodayTitle: "记录今天",
+    startDate: "开始日期", endDate: "结束日期",
+    flow: "流量", flowLight: "少量", flowMedium: "中量", flowHeavy: "大量",
+    symptoms: "症状（可多选）",
+    symptomCramp: "腹痛", symptomHeadache: "头痛", symptomBloat: "腹胀",
+    symptomFatigue: "疲劳", symptomMood: "情绪波动", symptomBack: "腰酸",
+    symptomBreast: "乳房胀痛", symptomAcne: "长痘",
+    cancel: "取消", save: "保存", delete: "删除",
+    noRecords: "还没有记录", noRecordsDesc: "点击右上角「+」记录经期，或点击「记录今天」开始吧",
+    saved: "已保存", updated: "已更新", deleted: "已删除",
+    cleared: "已清空", exported: "数据已导出", imported: "数据已导入",
+    invalidFile: "无效的数据文件", parseFailed: "文件解析失败",
+    selectDate: "请选择日期", endBeforeStart: "结束日期不能早于开始日期",
+    confirmClear: "确定要清空所有数据吗？此操作不可恢复。",
+    recorded: "已记录", dot: "·",
+    predictedRange: "预测 {s} ~ {e}",
+    lastPredicted: "上次预测 {s}，请更新记录",
+    yourFirstCycle: "记录你的第一个周期",
+    clickToStart: "点击下方按钮开始",
+    dateLabel: "日期",
+    langSwitch: "English"
+  },
+  en: {
+    appName: "Period Diary", appSubtitle: "Track your cycle, predict periods, log symptoms",
+    exportTitle: "Export data", importTitle: "Import data", addTitle: "Log period",
+    periodStatus: "Period", day: "day", of: "of", predicted: "Predicted",
+    daysLeft: "about", daysAfter: "days", daysLater: "days",
+    statusActive: "Period", statusPredicted: "Expected soon",
+    statusOverdue: "Update needed", statusSafe: "Safe period",
+    statusEmpty: "Get started",
+    today: "today", tomorrow: "tomorrow",
+    dayNum: "Day {n}", periodTotal: "about {n} days",
+    recordToday: "Log today", clickToRecord: "Tap to record flow and symptoms",
+    inPeriod: "On period", notInPeriod: "Not on period",
+    statsAvgCycle: "Avg cycle", statsAvgPeriod: "Avg period", statsTotal: "Cycles logged",
+    needMoreData: "Need more data",
+    sun: "Sun", mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat",
+    history: "History", clear: "Clear",
+    logPeriod: "Log period", editRecord: "Edit record", recordTodayTitle: "Log today",
+    startDate: "Start date", endDate: "End date",
+    flow: "Flow", flowLight: "Light", flowMedium: "Medium", flowHeavy: "Heavy",
+    symptoms: "Symptoms",
+    symptomCramp: "Cramps", symptomHeadache: "Headache", symptomBloat: "Bloating",
+    symptomFatigue: "Fatigue", symptomMood: "Mood swings", symptomBack: "Backache",
+    symptomBreast: "Breast tenderness", symptomAcne: "Acne",
+    cancel: "Cancel", save: "Save", delete: "Delete",
+    noRecords: "No records yet", noRecordsDesc: "Tap + to log a period, or tap 'Log today' to start",
+    saved: "Saved", updated: "Updated", deleted: "Deleted",
+    cleared: "Cleared", exported: "Data exported", imported: "Data imported",
+    invalidFile: "Invalid data file", parseFailed: "Failed to parse file",
+    selectDate: "Please select dates", endBeforeStart: "End date cannot be before start date",
+    confirmClear: "Clear all data? This cannot be undone.",
+    recorded: "Recorded", dot: "·",
+    predictedRange: "Predicted {s} ~ {e}",
+    lastPredicted: "Last predicted {s}, please update",
+    yourFirstCycle: "Record your first cycle",
+    clickToStart: "Tap the button below to start",
+    dateLabel: "Date",
+    langSwitch: "中文"
+  }
+};
+
+let currentLang = localStorage.getItem("period_lang") || "zh";
+
+function t(key, params) {
+  let s = LANG[currentLang] && LANG[currentLang][key];
+  if (!s) s = LANG["zh"][key] || key;
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      s = s.replace("{" + k + "}", v);
+    }
+  }
+  return s;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem("period_lang", lang);
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach(el => {
+    el.title = t(el.dataset.i18nTitle);
+  });
+  document.getElementById("langToggle").textContent = t("langSwitch");
+  refreshUI();
+}
+
+function toggleLang() {
+  setLang(currentLang === "zh" ? "en" : "zh");
+}
+
+
 
 function getDefaultData() {
   return {
@@ -857,31 +981,31 @@ function updateStatus() {
   if (active) {
     const dayNum = daysBetween(active.start, today) + 1;
     const total = daysBetween(active.start, active.end) + 1;
-    lbl.textContent = '经期中';
-    main.textContent = `第 ${dayNum} 天`;
-    sub.textContent = `预计 ${total} 天 · ${FLOW_LABELS[active.flow] || '中量'}`;
+    lbl.textContent = t('statusActive');
+    main.textContent = t('dayNum', {n: dayNum});
+    sub.textContent = t('periodTotal', {n: total}) + ' · ' + (FLOW_LABELS[active.flow] || t('flowMedium'));
     daysEl.style.display = 'inline-block';
     daysEl.textContent = active.start + ' ~ ' + active.end;
   } else if (prediction) {
     const daysUntil = daysBetween(today, prediction.start);
     if (daysUntil <= 3 && daysUntil >= 0) {
-      lbl.textContent = '预计即将开始';
-      main.textContent = `${daysUntil === 0 ? '今天' : daysUntil === 1 ? '明天' : `${daysUntil} 天后`}`;
-      sub.textContent = `预测 ${prediction.start} ~ ${prediction.end}`;
+      lbl.textContent = t('statusPredicted');
+      main.textContent = daysUntil === 0 ? t('today') : daysUntil === 1 ? t('tomorrow') : (daysUntil + ' ' + t('daysLater'));
+      sub.textContent = t('predictedRange', {s: prediction.start, e: prediction.end});
     } else if (daysUntil < 0) {
-      lbl.textContent = '等待记录';
-      main.textContent = '记录下次经期';
-      sub.textContent = `上次预测 ${prediction.start}，请更新记录`;
+      lbl.textContent = t('statusOverdue');
+      main.textContent = t('statusOverdue');
+      sub.textContent = t('lastPredicted', {s: prediction.start});
     } else {
-      lbl.textContent = '安全期';
-      main.textContent = `还有 ${daysUntil} 天`;
-      sub.textContent = `预测 ${prediction.start} ~ ${prediction.end}`;
+      lbl.textContent = t('statusSafe');
+      main.textContent = t('daysLeft') + ' ' + daysUntil + ' ' + t('day');
+      sub.textContent = t('predictedRange', {s: prediction.start, e: prediction.end});
     }
     daysEl.style.display = 'none';
   } else {
-    lbl.textContent = '开始记录';
-    main.textContent = '记录你的第一个周期';
-    sub.textContent = '点击下方按钮开始';
+    lbl.textContent = t('statusEmpty');
+    main.textContent = t('yourFirstCycle');
+    sub.textContent = t('clickToStart');
     daysEl.style.display = 'none';
   }
 }
@@ -897,27 +1021,27 @@ function updateStats() {
     for (let i = 1; i < sorted.length; i++) {
       intervals.push(daysBetween(sorted[i-1].start, sorted[i].start));
     }
-    avgCycle = Math.round(intervals.reduce((a,b) => a+b, 0) / intervals.length) + ' 天';
+    avgCycle = Math.round(intervals.reduce((a,b) => a+b, 0) / intervals.length) + ' ' + t('day');
   } else if (n === 1) {
-    avgCycle = '需要更多数据';
+    avgCycle = t('needMoreData');
   }
 
   let avgPeriod = '—';
   if (n > 0) {
     const lengths = sorted.map(c => daysBetween(c.start, c.end) + 1);
-    avgPeriod = Math.round(lengths.reduce((a,b) => a+b, 0) / lengths.length) + ' 天';
+    avgPeriod = Math.round(lengths.reduce((a,b) => a+b, 0) / lengths.length) + ' ' + t('day');
   }
 
   document.getElementById('avgCycle').textContent = avgCycle;
   document.getElementById('avgPeriod').textContent = avgPeriod;
-  document.getElementById('totalCycles').textContent = n + ' 个';
+  document.getElementById('totalCycles').textContent = n + ' ' + t('statsTotal');
 }
 
 // ─── UI: Calendar ──────────────────────────────────────────
 function renderCalendar() {
   const year = calDate.getFullYear();
   const month = calDate.getMonth();
-  document.getElementById('calMonth').textContent = `${year}年${month+1}月`;
+  document.getElementById('calMonth').textContent = currentLang === 'zh' ? (year + '年' + (month+1) + '月') : ((month+1) + '/' + year);
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -1002,8 +1126,8 @@ function renderHistory() {
     list.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon">🌸</div>
-        <div class="empty-state-title">还没有记录</div>
-        <div class="empty-state-desc">点击右上角「+」记录经期，<br>或点击「记录今天」开始吧</div>
+        <div class="empty-state-title" data-i18n="noRecords">还没有记录</div>
+        <div class="empty-state-desc" data-i18n="noRecordsDesc">点击右上角「+」记录经期，<br>或点击「记录今天」开始吧</div>
       </div>
     `;
     return;
@@ -1032,16 +1156,16 @@ function updateQuickDesc() {
   const entry = data.entries[today];
   const el = document.getElementById('quickLogDesc');
   if (!entry) {
-    el.textContent = '点击记录流量和症状';
+    el.textContent = t('clickToRecord');
     return;
   }
   const parts = [];
-  if (entry.inPeriod) parts.push('经期中');
+  if (entry.inPeriod) parts.push(t('statusActive'));
   if (entry.flow) parts.push(FLOW_LABELS[entry.flow]);
   if (entry.symptoms && entry.symptoms.length) {
     parts.push(entry.symptoms.map(s => SYMPTOM_LABELS[s]).join(' '));
   }
-  el.textContent = parts.length ? parts.join(' · ') : '已记录';
+  el.textContent = parts.length ? parts.join(' ' + t('dot') + ' ') : t('recorded');
 }
 
 // ─── Modal: Log Period ────────────────────────────────────
@@ -1063,7 +1187,7 @@ function getSelectedSymptoms(container) {
 }
 
 function openLogModal() {
-  document.getElementById('modalTitle').textContent = '记录经期';
+  document.getElementById('modalTitle').textContent = t('logPeriod');
   selectedFlow = 'medium';
   document.querySelectorAll('#logModal .flow-option').forEach(b => b.classList.remove('selected'));
   document.querySelector('#logModal .flow-option[data-flow="medium"]').classList.add('selected');
@@ -1091,11 +1215,11 @@ function savePeriod() {
   const symptoms = getSelectedSymptoms(document.getElementById('symptomTags'));
 
   if (!start || !end) {
-    showToast('请选择日期');
+    showToast(t('selectDate'));
     return;
   }
   if (end < start) {
-    showToast('结束日期不能早于开始日期');
+    showToast(t('endBeforeStart'));
     return;
   }
 
@@ -1113,7 +1237,7 @@ function savePeriod() {
   saveData();
   refreshUI();
   closeModal();
-  showToast('已保存');
+  showToast(t('saved'));
 }
 
 // ─── Modal: Quick Log ──────────────────────────────────────
@@ -1126,8 +1250,8 @@ function openQuickLog() {
   quickIsPeriod = entry ? !!entry.inPeriod : false;
   selectedFlow = entry?.flow || 'medium';
   const btn = document.getElementById('quickPeriodBtn');
-  btn.textContent = quickIsPeriod ? '在经期中' : '不在经期';
-  btn.className = quickIsPeriod ? 'btn btn-primary' : 'btn btn-secondary';
+  btn.textContent = quickIsPeriod ? t('inPeriod') : t('notInPeriod');
+  
 
   document.getElementById('quickFlowField').style.display = quickIsPeriod ? 'block' : 'none';
 
@@ -1149,8 +1273,8 @@ function openQuickLog() {
 function toggleQuickPeriod() {
   quickIsPeriod = !quickIsPeriod;
   const btn = document.getElementById('quickPeriodBtn');
-  btn.textContent = quickIsPeriod ? '在经期中' : '不在经期';
-  btn.className = quickIsPeriod ? 'btn btn-primary' : 'btn btn-secondary';
+  btn.textContent = quickIsPeriod ? t('inPeriod') : t('notInPeriod');
+  
   document.getElementById('quickFlowField').style.display = quickIsPeriod ? 'block' : 'none';
   if (!quickIsPeriod) {
     selectedFlow = 'medium';
@@ -1180,7 +1304,7 @@ function saveQuickLog() {
   saveData();
   refreshUI();
   closeQuickModal();
-  showToast(quickIsPeriod ? '已记录经期' : '已记录症状');
+  showToast(t('saved'));
 }
 
 // ─── Modal: Edit ──────────────────────────────────────────
@@ -1227,7 +1351,7 @@ function saveEditEntry() {
   saveData();
   refreshUI();
   closeEditModal();
-  showToast('已更新');
+  showToast(t('updated'));
 }
 
 function deleteCurrentEntry() {
@@ -1251,7 +1375,7 @@ function deleteCurrentEntry() {
   saveData();
   refreshUI();
   closeEditModal();
-  showToast('已删除');
+  showToast(t('deleted'));
 }
 
 // ─── Data Export / Import ──────────────────────────────────
@@ -1260,10 +1384,10 @@ function exportData() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `周期日记_${todayStr()}.json`;
+  a.download = (currentLang === 'zh' ? '周期日记' : 'PeriodDiary') + '_' + todayStr() + '.json';
   a.click();
   URL.revokeObjectURL(url);
-  showToast('数据已导出');
+  showToast(t('exported'));
 }
 
 function showImportDialog() {
@@ -1281,12 +1405,12 @@ function importData(event) {
         data = imported;
         saveData();
         refreshUI();
-        showToast('数据已导入');
+        showToast(t('imported'));
       } else {
-        showToast('无效的数据文件');
+        showToast(t('invalidFile'));
       }
     } catch(_) {
-      showToast('文件解析失败');
+      showToast(t('parseFailed'));
     }
   };
   reader.readAsText(file);
@@ -1296,11 +1420,11 @@ function importData(event) {
 // ─── Clear ────────────────────────────────────────────────
 function clearAllData() {
   if (data.cycles.length === 0) return;
-  if (confirm('确定要清空所有数据吗？此操作不可恢复。')) {
+  if (confirm(t('confirmClear'))) {
     data = getDefaultData();
     saveData();
     refreshUI();
-    showToast('已清空');
+    showToast(t('cleared'));
   }
 }
 
@@ -1316,6 +1440,9 @@ function showToast(msg) {
 
 // ─── Refresh ──────────────────────────────────────────────
 function refreshUI() {
+  document.querySelectorAll("[data-i18n]").forEach(function(el) {
+    if (!el.dataset.i18nTitle) el.textContent = t(el.dataset.i18n);
+  });
   updateStatus();
   updateStats();
   renderCalendar();
