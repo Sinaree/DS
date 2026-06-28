@@ -579,6 +579,12 @@
   }
   .lang-btn:hover { border-color: var(--rose-300); color: var(--rose-500); }
 </style>
+<script>
+window.onerror = function(msg, url, line, col, error) {
+  alert("JS Error: " + msg + "\nLine: " + line + "\n" + (error ? error.stack : ""));
+  return true;
+};
+</script>
 </head>
 <body>
 
@@ -1332,34 +1338,44 @@ function closeModal() {
 }
 
 function savePeriod() {
-  const start = document.getElementById('startDate').value;
-  const end = document.getElementById('endDate').value;
-  const symptoms = getSelectedSymptoms(document.getElementById('symptomTags'));
+  try {
+    var start = document.getElementById("startDate").value;
+    var end = document.getElementById("endDate").value;
+    console.log("savePeriod called", start, end);
 
-  if (!start || !end) {
-    showToast(t('selectDate'));
-    return;
-  }
-  if (end < start) {
-    showToast(t('endBeforeStart'));
-    return;
-  }
+    if (!start || !end) {
+      alert("Missing dates: " + start + " / " + end);
+      showToast(t("selectDate"));
+      return;
+    }
+    if (end < start) {
+      alert("End before start: " + end + " < " + start);
+      showToast(t("endBeforeStart"));
+      return;
+    }
 
-  let d = start;
-  while (d <= end) {
-    if (!data.entries[d]) data.entries[d] = {};
-    data.entries[d].inPeriod = true;
-    data.entries[d].flow = selectedFlow;
-    data.entries[d].symptoms = symptoms;
-    if (d === end) break;
-    d = addDays(d, 1);
-  }
+    var symptoms = getSelectedSymptoms(document.getElementById("symptomTags"));
+    console.log("Symptoms:", symptoms);
 
-  rebuildCycles();
-  saveData();
-  refreshUI();
-  closeModal();
-  showToast(t('saved'));
+    var d = start;
+    while (d <= end) {
+      if (!data.entries[d]) data.entries[d] = {};
+      data.entries[d].inPeriod = true;
+      data.entries[d].flow = selectedFlow;
+      data.entries[d].symptoms = symptoms;
+      if (d === end) break;
+      d = addDays(d, 1);
+    }
+
+    rebuildCycles();
+    saveData();
+    refreshUI();
+    closeModal();
+    showToast(t("saved"));
+  } catch(e) {
+    console.error("savePeriod error:", e);
+    alert("Error: " + e.message + "\n" + e.stack);
+  }
 }
 
 // ─── Modal: Quick Log ──────────────────────────────────────
