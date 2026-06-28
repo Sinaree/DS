@@ -1207,9 +1207,14 @@ function renderCalendar() {
     el.textContent = day;
     el.dataset.date = ds;
 
-    el.addEventListener('click', () => {
-      if (isPeriod) openEditModal(ds);
-    });
+    el.addEventListener('click', (function(dateStr) {
+      return function() {
+        var entry = data.entries[dateStr];
+        if (entry && entry.inPeriod) {
+          openEditModal(dateStr);
+        }
+      };
+    })(ds));
 
     grid.appendChild(el);
   }
@@ -1514,26 +1519,32 @@ function showImportDialog() {
 function importData(event) {
   const file = event.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
+  
+  function processText(text) {
     try {
-      const text = e.target.result.replace(/^\uFEFF/, "");
-      const imported = JSON.parse(text);
-      if (imported.cycles && imported.entries) {
+      text = text.replace(/^\uFEFF/, "");
+      var imported = JSON.parse(text);
+      if (imported && imported.cycles && imported.entries) {
         data = imported;
         saveData();
         refreshUI();
-        showToast(t('imported'));
+        showToast(t("imported"));
       } else {
-        showToast(t('invalidFile'));
+        showToast(t("invalidFile"));
       }
     } catch(e) {
       console.error("Import error:", e);
-      showToast(t('parseFailed') + ": " + (e.message || ""));
+      showToast(t("parseFailed"));
+      alert("Parse error: " + e.message + "\n\nFile starts with: " + text.substring(0, 100));
     }
+  }
+  
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    processText(e.target.result);
   };
   reader.readAsText(file);
-  event.target.value = '';
+  event.target.value = "";
 }
 
 // ─── Clear ────────────────────────────────────────────────
@@ -1575,8 +1586,21 @@ refreshUI();
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
-}
-</script>
+  navigator.serviceWorker.register('sw.js?ts=' + Date.now()).then(function(reg) {
+    reg.addEventListener('updatefound', function() {
+      var installing = reg.installing;
+      installing.addEventListener('statechange', function() {
+        if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+          if (confirm(t("confirmClear") + "\n\n" + "App updated. Reload now?")) {
+            window.location.reload();
+          }
+        }
+      });
+    });
+    if (reg.active) {
+      reg.update();
+    }
+  }).catch(function() {});
+}</script>
 </body>
 </html>
